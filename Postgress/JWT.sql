@@ -1,8 +1,17 @@
 select * from jwt_accounts
---     where client_id ILIKE '%ras%'
+--     WHERE client_id ILIKE ANY (
+--         ARRAY[
+--             '%clinical-plus%',
+--             '%ras%',
+--             '%baz%' ]
+--         )
 ;
 
 select * from jwt_credentials
---     where client_id ILIKE '%ras%'
+--     WHERE client_id ILIKE ANY (
+--         ARRAY[
+--             '%clinical-plus%',
+--             '%ras%',
+--             '%baz%' ]
+--         )
 ;
-
