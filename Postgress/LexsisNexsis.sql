@@ -1,4 +1,94 @@
 ----------------------------------------------------------------------------------------------------
+--  Full Import Testing
+----------------------------------------------------------------------------------------------------
+-- Drop existing Stage Table
+DROP TABLE IF EXISTS "ftp_stage_testjob";
+DROP TABLE IF EXISTS "test_hms_address";
+DROP TABLE IF EXISTS "test_hms_address_bak";
+DROP TABLE IF EXISTS "test_hms_practitioner_profile";
+DROP TABLE IF EXISTS "test_hms_practitioner_profile_bak";
+DROP TABLE IF EXISTS "test_hms_dea";
+DROP TABLE IF EXISTS "test_hms_dea_bak";
+
+SELECT 'test_hms_address' as tbl, COUNT(*) as cnt FROM test_hms_address
+UNION ALL
+SELECT 'test_hms_address_bak' as tbl, COUNT(*) as cnt FROM test_hms_address_bak
+UNION ALL
+SELECT 'test_hms_practitioner_profile' as tbl, COUNT(*) as cnt FROM test_hms_practitioner_profile
+UNION ALL
+SELECT 'test_hms_practitioner_profile_bak' as tbl, COUNT(*) as cnt FROM test_hms_practitioner_profile_bak
+UNION ALL
+SELECT 'test_hms_dea' as tbl, COUNT(*) as cnt FROM test_hms_dea
+UNION ALL
+SELECT 'test_hms_dea_bak' as tbl, COUNT(*) as cnt FROM test_hms_dea_bak
+;
+
+-- Drop existing Stage Table
+DROP TABLE IF EXISTS "test_portal_hms_address";
+DROP TABLE IF EXISTS "test_portal_hms_address_bak";
+DROP TABLE IF EXISTS "test_portal_hms_practitioner_profile";
+DROP TABLE IF EXISTS "test_portal_hms_practitioner_profile_bak";
+DROP TABLE IF EXISTS "test_portal_hms_dea";
+DROP TABLE IF EXISTS "test_portal_hms_dea_bak";
+
+SELECT 'test_portal_hms_address' as tbl, COUNT(*) as cnt FROM test_portal_hms_address
+UNION ALL
+SELECT 'test_portal_hms_address_bak' as tbl, COUNT(*) as cnt FROM test_portal_hms_address_bak
+UNION ALL
+SELECT 'test_portal_hms_practitioner_profile' as tbl, COUNT(*) as cnt FROM test_portal_hms_practitioner_profile
+UNION ALL
+SELECT 'test_portal_hms_practitioner_profile_bak' as tbl, COUNT(*) as cnt FROM test_portal_hms_practitioner_profile_bak
+UNION ALL
+SELECT 'test_portal_hms_dea' as tbl, COUNT(*) as cnt FROM test_portal_hms_dea
+UNION ALL
+SELECT 'test_portal_hms_dea_bak' as tbl, COUNT(*) as cnt FROM test_portal_hms_dea_bak
+;
+
+----------------------------------------------------------------------------------------------------
+--  Import Counts
+----------------------------------------------------------------------------------------------------
+SELECT 'dea' as tbl, COUNT(*) as cnt FROM test_hms_dea
+UNION ALL
+SELECT 'address' as tbl, COUNT(*) as cnt FROM test_hms_address
+UNION ALL
+SELECT 'pract' as tbl, COUNT(*) as cnt FROM test_hms_practitioner_profile
+;
+
+SELECT * FROM test_hms_dea;
+SELECT * FROM test_hms_address;
+SELECT * FROM test_hms_practitioner_profile;
+
+
+with delta as (SELECT SPLIT_PART(data, '|', 1) AS HMS_PIID,
+                      SPLIT_PART(data, '|', 2) AS DEA,
+                      SPLIT_PART(data, '|', 3) AS DEA_SCHEDULE,
+                      SPLIT_PART(data, '|', 4) AS DEA_EXPIRE,
+                      SPLIT_PART(data, '|', 5) AS NADEAN,
+                      SPLIT_PART(data, '|', 6) AS LID,
+                      SPLIT_PART(data, '|', 7) AS CHNG_FLAG
+               FROM ftp_stage_testjob
+)
+SELECT hms_piid, dea,  count(*) as cnt from delta
+GROUP BY hms_piid, dea
+HAVING count(*) > 1
+;
+
+
+SELECT hms_piid, COUNT(*) as cnt
+FROM test_hms_dea
+GROUP BY hms_piid
+HAVING count(*) > 1
+;
+
+
+SELECT * FROM test_hms_dea where hms_piid = 'PIGWJ69J87';
+
+TRUNCATE TABLE test_hms_dea;
+TRUNCATE TABLE test_hms_address;
+TRUNCATE TABLE test_hms_practitioner_profile;
+
+
+----------------------------------------------------------------------------------------------------
 -- Drop TestJob Stage
 ----------------------------------------------------------------------------------------------------
 TRUNCATE TABLE ftp_stage_testjob;
