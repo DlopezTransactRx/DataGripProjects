@@ -1,9 +1,9 @@
 USE ROLE SYSADMIN;
-USE DATABASE CPE_DEV;
---USE DATABASE CPE_PROD;
+-- USE DATABASE CPE_DEV;
+USE DATABASE CPE_PROD;
 
-SET start_date = CURRENT_DATE();
---     SET start_date = TO_TIMESTAMP_NTZ('2025-10-15 00:00:00');  -- inclusive
+-- SET start_date = CURRENT_DATE();
+    SET start_date = TO_TIMESTAMP_NTZ('2025-10-14 00:00:00');  -- inclusive
 SET num_days   = 1;                                        -- e.g., 1 day
 SET end_date   = DATEADD(DAY, $num_days, $start_date);     -- exclusive
 
