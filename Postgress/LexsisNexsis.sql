@@ -1,47 +1,55 @@
-----------------------------------------------------------------------------------------------------
---  Full Import Testing
-----------------------------------------------------------------------------------------------------
--- Drop existing Stage Table
-DROP TABLE IF EXISTS "ftp_stage_testjob";
-DROP TABLE IF EXISTS "test_hms_address";
-DROP TABLE IF EXISTS "test_hms_address_bak";
-DROP TABLE IF EXISTS "test_hms_practitioner_profile";
-DROP TABLE IF EXISTS "test_hms_practitioner_profile_bak";
-DROP TABLE IF EXISTS "test_hms_dea";
-DROP TABLE IF EXISTS "test_hms_dea_bak";
-
-SELECT 'test_hms_address' as tbl, COUNT(*) as cnt FROM test_hms_address
+SELECT 'hms_address_bak' as tbl, COUNT(*) as cnt FROM hms_address_bak
 UNION ALL
-SELECT 'test_hms_address_bak' as tbl, COUNT(*) as cnt FROM test_hms_address_bak
+SELECT 'hms_practitioner_profile_bak' as tbl, COUNT(*) as cnt FROM hms_practitioner_profile_bak
 UNION ALL
-SELECT 'test_hms_practitioner_profile' as tbl, COUNT(*) as cnt FROM test_hms_practitioner_profile
-UNION ALL
-SELECT 'test_hms_practitioner_profile_bak' as tbl, COUNT(*) as cnt FROM test_hms_practitioner_profile_bak
-UNION ALL
-SELECT 'test_hms_dea' as tbl, COUNT(*) as cnt FROM test_hms_dea
-UNION ALL
-SELECT 'test_hms_dea_bak' as tbl, COUNT(*) as cnt FROM test_hms_dea_bak
+SELECT 'hms_dea_bak' as tbl, COUNT(*) as cnt FROM hms_dea_bak
 ;
 
--- Drop existing Stage Table
-DROP TABLE IF EXISTS "test_portal_hms_address";
-DROP TABLE IF EXISTS "test_portal_hms_address_bak";
-DROP TABLE IF EXISTS "test_portal_hms_practitioner_profile";
-DROP TABLE IF EXISTS "test_portal_hms_practitioner_profile_bak";
-DROP TABLE IF EXISTS "test_portal_hms_dea";
-DROP TABLE IF EXISTS "test_portal_hms_dea_bak";
 
-SELECT 'test_portal_hms_address' as tbl, COUNT(*) as cnt FROM test_portal_hms_address
+SELECT * FROM hms_address_bak
+WHERE hms_piid in (
+'PI000023D4',
+'PI00006QD5',
+'PI00006QD5',
+'PI00006QD5',
+'PI000097B8',
+'PI0000TE96',
+'PI0000TE96',
+'PI0000TE96',
+'PI0000TE96',
+'PI0000UM93',
+'PI000130J9',
+'PI000130J9',
+'PI0001X950',
+'PI00029B64',
+'PI0002FHV3'
+    )
+;
+
+----------------------------------------------------------------------------------------------------
+--  BackUp Original Table Before Real Run.
+----------------------------------------------------------------------------------------------------
+create table hms_address_original as
+    SELECT * from hms_address;
+
+create table hms_practitioner_profile_original as
+    SELECT * from hms_practitioner_profile;
+
+create table hms_dea_original as
+    SELECT * from hms_dea;
+
+
+SELECT 'hms_address' as tbl, COUNT(*) as cnt FROM hms_address
 UNION ALL
-SELECT 'test_portal_hms_address_bak' as tbl, COUNT(*) as cnt FROM test_portal_hms_address_bak
+SELECT 'hms_address_bak' as tbl, COUNT(*) as cnt FROM hms_address_bak
 UNION ALL
-SELECT 'test_portal_hms_practitioner_profile' as tbl, COUNT(*) as cnt FROM test_portal_hms_practitioner_profile
+SELECT 'hms_practitioner_profile' as tbl, COUNT(*) as cnt FROM hms_practitioner_profile
 UNION ALL
-SELECT 'test_portal_hms_practitioner_profile_bak' as tbl, COUNT(*) as cnt FROM test_portal_hms_practitioner_profile_bak
+SELECT 'hms_practitioner_profile_bak' as tbl, COUNT(*) as cnt FROM hms_practitioner_profile_bak
 UNION ALL
-SELECT 'test_portal_hms_dea' as tbl, COUNT(*) as cnt FROM test_portal_hms_dea
+SELECT 'hms_dea' as tbl, COUNT(*) as cnt FROM hms_dea
 UNION ALL
-SELECT 'test_portal_hms_dea_bak' as tbl, COUNT(*) as cnt FROM test_portal_hms_dea_bak
+SELECT 'hms_dea_bak' as tbl, COUNT(*) as cnt FROM hms_dea_bak
 ;
 
 ----------------------------------------------------------------------------------------------------
