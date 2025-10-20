@@ -70,4 +70,6 @@ SELECT 'Vendor_Type' AS object_name, COUNT(*) AS row_count FROM Vendor_Type
 UNION ALL
 SELECT 'Voucher_Status' AS object_name, COUNT(*) AS row_count FROM Voucher_Status
 UNION ALL
-SELECT 'Workflow_Type' AS object_name, COUNT(*) AS row_count FROM Workflow_Type;
+SELECT 'Workflow_Type' AS object_name, COUNT(*) AS row_count FROM Workflow_Type
+
+ORDER BY object_name ASC;
