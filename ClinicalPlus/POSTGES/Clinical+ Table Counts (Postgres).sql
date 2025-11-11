@@ -1,3 +1,4 @@
+-- Clinical+ Counts (Postgres)
 SELECT 'Campaign' AS object_name, COUNT(*) AS row_count FROM campaign
 UNION ALL
 SELECT 'Campaign_Alert_History' AS object_name, COUNT(*) AS row_count FROM Campaign_Alert_History
@@ -73,3 +74,10 @@ UNION ALL
 SELECT 'Workflow_Type' AS object_name, COUNT(*) AS row_count FROM Workflow_Type
 
 ORDER BY object_name ASC;
+
+
+-- Campaign_Alert_History 371681
+-- Patient 27308970
+-- Patient_Rx 261789755
+-- Patient_Rx_Payment_Info 108550238
+-- Patient_Rx_Prescriber_Info 121515100
