@@ -14,13 +14,6 @@ USE DATABASE CPE_DEV;
 USE SCHEMA TEST;
 USE ROLE SYSADMIN;
 
-//================================================================
-// Create Test Table Log
-//================================================================
-create or replace TABLE CPE_DEV.TEST.CACHE_LOG (
-	TABLE_NAME VARCHAR(255) NOT NULL,
-	OPERATION_TIME TIMESTAMP_NTZ(9) DEFAULT CURRENT_TIMESTAMP()
-);
 
 // =================================================
 // Create Test Table
@@ -98,4 +91,4 @@ DELETE FROM CPE_DEV.TEST.CACHE_LOG WHERE TABLE_NAME = 'CPE_DEV.TEST.TEST1';
 // =================================================
 // Show Cache Table
 // =================================================
-SELECT * FROM CPE_DEV.TEST.CACHE_LOG;
+SELECT * FROM CPE_DEV.DB_CACHE.CACHE_LOG;
