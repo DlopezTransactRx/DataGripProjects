@@ -8,8 +8,8 @@ SELECT *
         data:eventId in
         (
             // Replace with actual event IDs
-            'dd1c0803-ad19-4e92-ae29-56cd3eca8eaf',
-            '49ce6c89-4327-4e65-8ce2-7c700f075d10'
+            'eventid-1-placeholder',
+            'eventid-2-placeholder'
         )
-        AND INGESTED_TIMESTAMP > '2024-09-17 00:00:00.000'
-     LIMIT 2;
+--         AND INGESTED_TIMESTAMP > '2024-09-17 00:00:00.000
+;
