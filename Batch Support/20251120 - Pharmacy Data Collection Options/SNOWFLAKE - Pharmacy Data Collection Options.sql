@@ -1,6 +1,11 @@
 //====================================================================================================
 // Counts/Data
 //====================================================================================================
+
+-- Count In Table
+SELECT COUNT(*) FROM CPE_PROD.DATA.RULE_DATA_PHARMACY_DATA_COLLECTION_OPTIONS;
+
+-- Count Data
 WITH originalEvents AS (
     SELECT DATA:eventPayload.record_id::INTEGER as record_Id
     FROM CPE_PROD.STAGING.STAGE_EVENTS
@@ -15,40 +20,24 @@ newEvents AS  (
 -- Target Table Count
 SELECT 'Table Count (RULE_DATA_PHARAMACY_DATA_COLLECTION_OPTIONS)' as name, COUNT(*) FROM CPE_PROD.DATA.RULE_DATA_PHARMACY_DATA_COLLECTION_OPTIONS
 UNION ALL
-SELECT 'All Event Count (rule-data-pharmacy-data-collection-options)' as name, COUNT(*) as cnt FROM originalEvents
+SELECT 'Total Event Count (rule-data-pharmacy-data-collection-options)' as name, COUNT(*) as cnt FROM originalEvents
 UNION ALL
 SELECT 'Distinct Record Id Event Count (rule-data-pharmacy-data-collection-options)' as name, COUNT(*) as cnt FROM (SELECT DISTINCT record_id FROM originalEvents)
 UNION ALL
-SELECT 'Event Count (rule-data-pharmacy-data-collection-options-2)' as name, COUNT(*) as cnt FROM newEvents
+SELECT 'Total Event Count (rule-data-pharmacy-data-collection-options-2)' as name, COUNT(*) as cnt FROM newEvents
 UNION ALL
 SELECT 'Distinct Record Id Event Count (rule-data-pharmacy-data-collection-options-2)' as name, COUNT(*) as cnt FROM (SELECT DISTINCT record_id FROM newEvents);
 
 //====================================================================================================
-// Sample Data
-//====================================================================================================
--- Sample Data From Target Table
-SELECT * FROM CPE_PROD.DATA.RULE_DATA_PHARMACY_DATA_COLLECTION_OPTIONS ORDER BY RECORD_ID ASC;
-
--- Get Record Ids From Staged Events
-WITH recordIdsInStagedEvent AS (
-    SELECT DATA:eventPayload.record_id::INTEGER as record_Id
-    FROM CPE_PROD.STAGING.STAGE_EVENTS
-    WHERE data:eventType in ('rule-data-pharmacy-data-collection-options-2')
-      AND INGESTED_TIMESTAMP > '2025-09-19 00:00:00.000'
-    ORDER BY record_ID ASC
-)
-SELECT DISTINCT record_id FROM recordIdsInStagedEvent;
-
-//====================================================================================================
 // Discovery: Some Records in Postgres Appear To Be Missing From Snowflake.
 //====================================================================================================
--- SET eventType = 'rule-data-pharmacy-data-collection-options';
-SET eventType = 'rule-data-pharmacy-data-collection-options-2';
+SET eventType = 'rule-data-pharmacy-data-collection-options';
+-- SET eventType = 'rule-data-pharmacy-data-collection-options-2';
 
 -- Missing Postgres Records
 WITH postgresIds AS (
     -- List of Ids Currently In Postgress
-    SELECT VALUE::NUMBER AS record_id
+    SELECT TRIM(VALUE)::VARCHAR AS record_id
     FROM TABLE(
         FLATTEN(
             SPLIT(
@@ -67,17 +56,67 @@ stageEvents as (
         INGESTED_TIMESTAMP
     FROM CPE_PROD.STAGING.STAGE_EVENTS
     WHERE data:eventType::VARCHAR = $eventType
---     AND INGESTED_TIMESTAMP > '2020-10-01'
 ),
 
--- Postgress Records Missing In Snowflake
-missingRecords as (
+-- Postgress Records Missing In Snowflake Events
+missingEvents as (
     -- Select All Events That Arent in Post Postgress
     SELECT record_id
     FROM postgresIds
     WHERE record_id NOT IN (SELECT record_id FROM stageEvents)
-    -- AND VERSION NOT IN (SELECT version FROM deletedPostgresIds)
     ORDER BY record_id DESC
+),
+
+-- Postgress Records Missing In Snowflake Table
+ missingRecords as (
+     -- Select All Events That Arent in Post Postgress
+     SELECT record_id
+     FROM postgresIds
+     WHERE record_id NOT IN (SELECT RECORD_ID FROM CPE_PROD.DATA.RULE_DATA_PHARMACY_DATA_COLLECTION_OPTIONS)
+     ORDER BY record_id DESC
+ ),
+
+recordsInSfNotInPg as (
+    -- Select All Events That Arent in Post Postgress
+    SELECT RECORD_ID
+    FROM CPE_PROD.DATA.RULE_DATA_PHARMACY_DATA_COLLECTION_OPTIONS
+    WHERE RECORD_ID NOT IN (SELECT record_id FROM postgresIds)
+    ORDER BY RECORD_ID DESC
 )
+
+SELECT 'Missing From Events' as name , * FROM missingEvents
+UNION ALL
+SELECT 'Missing From Records' as name , * FROM missingRecords
+UNION ALL
+SELECT 'Records in Snowflake Not In Posgress' as name , * FROM recordsInSfNotInPg;
+
+
+//====================================================================================================
+// Sample Data
+//====================================================================================================
+-- Sample Data From Target Table
+SELECT * FROM CPE_PROD.DATA.RULE_DATA_PHARMACY_DATA_COLLECTION_OPTIONS ORDER BY RECORD_ID ASC;
+
+-- Get Record Ids From Staged Events
+WITH recordIdsInStagedEvent AS (
+    SELECT DATA:eventPayload.record_id::INTEGER as record_Id
+    FROM CPE_PROD.STAGING.STAGE_EVENTS
+    WHERE data:eventType in ('rule-data-pharmacy-data-collection-options-2')
+      AND INGESTED_TIMESTAMP > '2025-09-19 00:00:00.000'
+    ORDER BY record_ID ASC
+)
+SELECT DISTINCT record_id FROM recordIdsInStagedEvent;
+
+
+//====================================================================================================
+// Records of Interest - Missing Record Ids
+//====================================================================================================
+-- Get Record Present In Snowflake But Not Postgress
+SELECT * FROM CPE_PROD.DATA.RULE_DATA_PHARMACY_DATA_COLLECTION_OPTIONS WHERE RECORD_ID = '1421187327057448960';
+
+-- Get Event Present In Staged Events
 SELECT *
-FROM missingRecords;
+FROM CPE_PROD.STAGING.STAGE_EVENTS
+WHERE data:eventType in ('rule-data-pharmacy-data-collection-options')
+  AND data:eventPayload.record_id::VARCHAR = '1421187327057448960';
+

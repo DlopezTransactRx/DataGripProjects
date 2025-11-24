@@ -12,7 +12,7 @@ WITH idsInSnowflake AS (
     SELECT DISTINCT value::numeric AS recordId
     FROM unnest(string_to_array(
         -- List of Snowflake Ids
-        '1441434859532103681, 1441428959786528769'
+        '1421187327057448960'
         , ',')) AS value
 )
 SELECT *

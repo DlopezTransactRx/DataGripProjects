@@ -1,14 +1,14 @@
 USE DATABASE CPE_DEV;
 USE SCHEMA STAGING;
 
-SELECT COUNT(*)
+SELECT *
 FROM
-    CPE_PROD.STAGING.STAGE_EVENTS
+    CPE_DEV.STAGING.STAGE_EVENTS
 WHERE
-    data:eventType in
-    (
-        // Replace with actual event IDs
-        'rule-data-pharmacy-data-collection-options-2'
-        )
-  AND INGESTED_TIMESTAMP > '2025-09-19 00:00:00.000'
-;
+    INGESTED_TIMESTAMP > '2025-11-24 00:00:00.000'
+    AND data:eventType LIKE '%events-test3%'
+--     AND data:eventId::VARCHAR LIKE '%compressed-20251124%'
+--     AND data:eventPayload.Description::VARCHAR LIKE '%Hello%'
+--     AND data:searchable::BOOLEAN = TRUE
+--     AND data:persist::BOOLEAN = TRUE
+LIMIT 100;
