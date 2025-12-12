@@ -8,7 +8,7 @@ SELECT *
 FROM jwt_accounts as a
          JOIN jwt_credentials as c
               ON a.client_id = c.client_id
-WHERE a.client_id ILIKE 'daniel-dev-test';
+WHERE a.client_id ILIKE 'ras-testing-dev';
 
 ----------------------------------------------------------------------------------------------------
 -- JWT Account
@@ -18,10 +18,10 @@ select * from jwt_accounts
 ;
 
 insert into jwt_accounts (client_id, roles_csv, audiences_csv, claims_kv_csv, token_expiration_hours, token_type, date_added, date_updated, active, portal_account_id) values (
-    'daniel-dev-test',
-    'rxhistory-api-access',
-    'patientrxhistory',
-    'clientId:daniel-test1,lookup:prescriptionHistory,test=helloWorld',
+    'ras-testing-dev',
+    'ras-testing',
+    'ras-testing',
+    'clientId:ras-testing,test=helloWorld',
     10,
     'Bearer',
     now(),
@@ -39,9 +39,9 @@ select * from jwt_credentials
 ;
 
 insert into jwt_credentials (jwt_credentials_id, client_id, client_secret, expiration, date_added, date_updated) values (
-    '123942696997720251124', -- Generate Some Random Big Int.
-    'daniel-dev-test',
-    '126yzecd-8x8z-6784-5b3d-987Agf287x82', -- Generate Som Client Secret.
+    '123942696997720251126', -- Generate Some Random Big Int.
+    'ras-testing-dev',
+    '127yzecd-9x8z-6884-5b3x-997Agf287y83', -- Generate Som Client Secret.
     null,
     now(),
     now()

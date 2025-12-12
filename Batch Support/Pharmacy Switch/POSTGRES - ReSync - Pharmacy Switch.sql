@@ -1,9 +1,14 @@
 -- ====================================================================================================
 -- [POSTGRES] NOTE: New Columns Added to Support PPE Rules Not In Snowflake.
 -- ====================================================================================================
+
 SELECT ppe_rule_base_id FROM pharmacy_switch_service where ppe_rule_base_id IS NOT NULL;
 SELECT direct_override, insert_intermediary_auth_code, ppe_type, record_status FROM switch_service;
 
+
+SELECT COUNT(*)  FROM pharmacy_switch_service;
+
+SELECT * FROM db_export_deleted_records;
 
 -- ====================================================================================================
 -- [POSTGRES] Source Table Counts
@@ -18,6 +23,9 @@ WHERE event_type IN (
 -- Sample Data
 SELECT * FROM pharmacy_switch_service;
 SELECT * FROM switch_service;
+
+SELECT COUNT(*) FROM pharmacy_switch_service;
+SELECT COUNT(*) FROM switch_service;
 
 -- Describe Tables
 SELECT column_name, data_type, is_nullable, column_default, table_name
