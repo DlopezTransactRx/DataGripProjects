@@ -56,6 +56,14 @@ MERGE INTO BACKFILL_CONTROL c
         SELECT :P_TASK_NAME AS task_name
     ) s
     ON c.task_name = s.task_name
+    WHEN MATCHED THEN
+        UPDATE SET
+            start_date = :P_START_DATE,
+            end_date = :P_END_DATE,
+            next_date = :P_START_DATE,
+            state = 'READY',
+            updated_at = CURRENT_TIMESTAMP(),
+            last_message = 'Re-Registered'
     WHEN NOT MATCHED THEN
         INSERT (task_name, start_date, end_date, next_date, state, last_message)
             VALUES (:P_TASK_NAME, :P_START_DATE, :P_END_DATE, :P_START_DATE, 'READY', 'Registered');
@@ -985,12 +993,12 @@ SELECT * FROM CPE_CLAIMS_LOG;
 --TRUNCATE TABLE BACKFILL_LOG;
 
 -- Register BackFill Task
-CALL REGISTER_BACKFILL('TASK_BACKLOG_CLAIMS_LOG', '2025-12-15', '2025-12-16');
+CALL REGISTER_BACKFILL('TASK_BACKLOG_CLAIMS_LOG', '2025-12-17', '2025-01-17');
 SELECT * FROM BACKFILL_CONTROL;
 
 -- Create Task
 CREATE OR REPLACE TASK TASK_BACKLOG_CLAIMS_LOG
-    WAREHOUSE = COMPUTE_WH
+    WAREHOUSE = WH_RESEARCH
     SCHEDULE = 'USING CRON * * * * * UTC'  AS
     CALL EXECUTE_BACKFILL('TASK_BACKLOG_CLAIMS_LOG', 'BACKFILL_CLAIMS_LOG');
 ALTER TASK TASK_BACKLOG_CLAIMS_LOG SUSPEND;
