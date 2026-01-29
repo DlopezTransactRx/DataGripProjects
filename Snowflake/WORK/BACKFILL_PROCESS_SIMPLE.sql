@@ -101,7 +101,7 @@ DECLARE
   v_rows         NUMBER;
 BEGIN
 
-    INSERT INTO BACKFILL_LOG( step, detail) VALUES ('START', 'In EXECUTE_BACKFILL procedure');
+--     INSERT INTO BACKFILL_LOG( step, detail) VALUES ('START', 'In EXECUTE_BACKFILL procedure');
 
     -- Lock-ish behavior: mark RUNNING up front INSERT INTO BACKFILL_LOG( step, detail) VALUES ('Lock The Control Table', 'Setting control to Running.');
     UPDATE BACKFILL_CONTROL
@@ -112,7 +112,7 @@ BEGIN
      AND state IN ('READY','RUNNING');
 
     -- Check
-    INSERT INTO BACKFILL_LOG( step, detail) VALUES ('Claim Log', 'Updated Control Table');
+--     INSERT INTO BACKFILL_LOG( step, detail) VALUES ('Claim Log', 'Updated Control Table');
     SELECT start_date, end_date, next_date
         INTO v_start_date, v_end_date, v_next_date
     FROM BACKFILL_CONTROL
@@ -125,7 +125,7 @@ BEGIN
     END IF;
 
     IF (v_next_date > v_end_date) THEN
-        INSERT INTO BACKFILL_LOG( step, detail) VALUES ('Done Condition', 'BackFill Complete');
+        INSERT INTO BACKFILL_LOG( step, detail) VALUES ('Complete', 'BackFill Complete ' || TO_VARCHAR(:P_TASK_NAME));
         UPDATE BACKFILL_CONTROL
            SET state = 'DONE',
                updated_at = CURRENT_TIMESTAMP(),
@@ -142,7 +142,7 @@ BEGIN
     -----------------------------------------------------------------------
     -- Execute the Backfill Procedure
     -----------------------------------------------------------------------
-    INSERT INTO BACKFILL_LOG( step, detail) VALUES ('Process Procedure', :P_PROCEDURE || '(''' || TO_VARCHAR(:v_next_date) || ''')');
+    INSERT INTO BACKFILL_LOG( step, detail) VALUES ('Executing Procedure', :P_PROCEDURE || '(''' || TO_VARCHAR(:v_next_date) || ''')');
     EXECUTE IMMEDIATE 'CALL ' || :P_PROCEDURE || '(''' || TO_VARCHAR(:v_next_date) || ''')';
 
 --     v_rows := SQLROWCOUNT;
@@ -151,7 +151,7 @@ BEGIN
   -----------------------------------------------------------------------
   -- Advance cursor (only after success)
   -----------------------------------------------------------------------
-    INSERT INTO BACKFILL_LOG( step, detail) VALUES ('Advanced Cursor', 'Advancing From ' || TO_VARCHAR(:v_next_date));
+--     INSERT INTO BACKFILL_LOG( step, detail) VALUES ('Advanced Cursor', 'Advancing From ' || TO_VARCHAR(:v_next_date));
     UPDATE BACKFILL_CONTROL
      SET next_date = DATEADD(day, 1, :v_next_date),
          updated_at   = CURRENT_TIMESTAMP(),
@@ -387,7 +387,7 @@ USING (
         TRIM(EXTRACT_NCPDP_FIELD(REQUEST, '28', 1))                                   AS REQ_28_UNIT_OF_MEASURE,                                     //CLAIM
         TRIM(EXTRACT_NCPDP_FIELD(REQUEST, 'C8', 1))                                   AS REQ_C8_OTHER_COVERAGE_CODE,                                 //CLAIM
         SUBSTR(LTRIM(EXTRACT_NCPDP_FIELD(REQUEST, 'D2', 1), '0'), 0, 12)              AS REQ_D2_RX_NUMBER,                                           //CLAIM
-        TRIM(EXTRACT_NCPDP_FIELD(REQUEST, 'D3', 1))                                   AS REQ_D3_FILL_NUMBER,                                         //CLAIM
+        TRY_TO_NUMBER(EXTRACT_NCPDP_FIELD(REQUEST, 'D3', 1))                          AS REQ_D3_FILL_NUMBER,                                         //CLAIM
         IFF(LTRIM(EXTRACT_NCPDP_FIELD(REQUEST, 'D3', 1), '0') = '' OR LTRIM(EXTRACT_NCPDP_FIELD(REQUEST, 'D3', 1), '0') IS NULL, '0', LTRIM(EXTRACT_NCPDP_FIELD(REQUEST, 'D3', 1), '0')) AS FILL_NUMBER, //CLAIM
         TRY_TO_NUMBER(EXTRACT_NCPDP_FIELD(REQUEST, 'D5', 1))                          AS REQ_D5_DAYS_SUPPLY,                                         //CLAIM
         TRIM(EXTRACT_NCPDP_FIELD(REQUEST, 'D6', 1))                                   AS REQ_D6_COMPOUND_CODE,                                       //CLAIM
@@ -459,7 +459,7 @@ USING (
         TRIM(EXTRACT_NCPDP_FIELD(REQUEST, '4C', 1))                                   AS REQ_4C_COORDINATION_OF_BENEFITS_COUNT,                      //COORDINATION OF BENEFITS
         TRIM(EXTRACT_NCPDP_FIELD(REQUEST, 'NT', 1))                                   AS REQ_NT_OTHER_PAYER_ID_COUNT,                                //COORDINATION OF BENEFITS
         TRIM(EXTRACT_NCPDP_FIELD(REQUEST, '5C', 1))                                   AS REQ_5C_OTHER_PAYER_COVERAGE_TYPE,                           //COORDINATION OF BENEFITS
-        TRANSFORM(STRTOK_TO_ARRAY(EXTRACT_NCPDP_FIELD_JOINED_BY(RESPONSE, '7C', '~~~'), '~~~'), x -> TRIM(x)) AS REQ_7C_OTHER_PAYER_ID,              //COORDINATION OF BENEFITS
+        TRANSFORM(STRTOK_TO_ARRAY(EXTRACT_NCPDP_FIELD_JOINED_BY(REQUEST, '7C', '~~~'), '~~~'), x -> TRIM(x)) AS REQ_7C_OTHER_PAYER_ID,              //COORDINATION OF BENEFITS
 
         -- NCPDP SEGMENT (WORKERS COMPENSATION)
         TRIM(EXTRACT_NCPDP_FIELD(REQUEST, 'TZ', 1))                                   AS REQ_TZ_GENERIC_EQUIVALENT_PRODUCT_ID_QUALIFIER,             //WORKERS COMPENSATION
@@ -483,10 +483,10 @@ USING (
         TRIM(EXTRACT_NCPDP_FIELD(REQUEST, 'ED', 1))                                   AS REQ_ED_COMPOUND_INGREDIENT_QUANTITY,                        //COMPOUND
         PARSE_NCPDP_CURRENCY(EXTRACT_NCPDP_FIELD(REQUEST, 'EE', 1))                   AS REQ_EE_COMPOUND_INGREDIENT_DRUG_COST,                       //COMPOUND
         TRIM(EXTRACT_NCPDP_FIELD(REQUEST, 'RE', 1))                                   AS REQ_RE_COMPOUND_PRODUCT_ID_QUALIFIER,                       //COMPOUND
-        TRANSFORM(STRTOK_TO_ARRAY(EXTRACT_NCPDP_FIELD_JOINED_BY(RESPONSE, 'TE', '~~~'), '~~~'), x -> TRIM(x)) AS REQ_TE_COMPOUND_PRODUCT_ID,         //COMPOUND
+        TRANSFORM(STRTOK_TO_ARRAY(EXTRACT_NCPDP_FIELD_JOINED_BY(REQUEST, 'TE', '~~~'), '~~~'), x -> TRIM(x)) AS REQ_TE_COMPOUND_PRODUCT_ID,         //COMPOUND
 
         -- NCPDP SEGMENT (CLINICAL)
-        TRANSFORM(STRTOK_TO_ARRAY(EXTRACT_NCPDP_FIELD_JOINED_BY(RESPONSE, 'DO', '~~~'), '~~~'), x -> TRIM(x)) AS REQ_DO_DIAGNOSIS_CODE,              //CLINICAL
+        TRANSFORM(STRTOK_TO_ARRAY(EXTRACT_NCPDP_FIELD_JOINED_BY(REQUEST, 'DO', '~~~'), '~~~'), x -> TRIM(x)) AS REQ_DO_DIAGNOSIS_CODE,              //CLINICAL
         TRIM(EXTRACT_NCPDP_FIELD(REQUEST, 'WE', 1))                                   AS REQ_WE_DIAGNOSIS_CODE_QUALIFIER,                            //CLINICAL
         TRIM(EXTRACT_NCPDP_FIELD(REQUEST, 'VE', 1))                                   AS REQ_VE_DIAGNOSIS_CODE_COUNT,                                //CLINICAL
 
@@ -544,7 +544,7 @@ USING (
         TRIM(EXTRACT_NCPDP_FIELD(RESPONSE, 'FM', 1))                                  AS RES_FM_BASIS_OF_REIMBURSEMENT_DETERMINATION,                //RESPONSE PRICING
         TRIM(EXTRACT_NCPDP_FIELD(RESPONSE, 'J3', 1))                                  AS RES_J3_OTHER_AMOUNT_PAID_QUALIFIER,                         //RESPONSE PRICING
         PARSE_NCPDP_CURRENCY(EXTRACT_NCPDP_FIELD(RESPONSE, 'FJ', 1))                  AS RES_FJ_AMOUNT_ATTRIBUTED_TO_PRODUCT_SELECTION,              //RESPONSE PRICING
-        TRANSFORM(STRTOK_TO_ARRAY(EXTRACT_NCPDP_FIELD_JOINED(REQUEST, 'J4')), x -> PARSE_NCPDP_CURRENCY(x)) AS RES_J4_OTHER_AMOUNT_PAID,             //RESPONSE PRICING
+        TRANSFORM(STRTOK_TO_ARRAY(EXTRACT_NCPDP_FIELD_JOINED(RESPONSE, 'J4')), x -> PARSE_NCPDP_CURRENCY(x)) AS RES_J4_OTHER_AMOUNT_PAID,             //RESPONSE PRICING
         PARSE_NCPDP_CURRENCY(EXTRACT_NCPDP_FIELD(RESPONSE, 'UM', 1))                  AS RES_UM_AMOUNT_ATTRIBUTED_TO_NON_PREFERRED_SELECTION,        //RESPONSE PRICING
         PARSE_NCPDP_CURRENCY(EXTRACT_NCPDP_FIELD(RESPONSE, 'UK', 1))                  AS RES_UK_AMOUNT_ATTRIBUTED_TO_BRAND_DRUG,                     //RESPONSE PRICING
         PARSE_NCPDP_CURRENCY(EXTRACT_NCPDP_FIELD(RESPONSE, 'UJ', 1))                  AS RES_UJ_AMOUNT_ATTRIBUTED_TO_PROVIDER_NETWORK_SELECTION,     //RESPONSE PRICING
@@ -982,7 +982,9 @@ SELECT DISTINCT DATE(INGESTED_TIMESTAMP) as DATE, COUNT(*) as cnt FROM STAGING.S
 SELECT DISTINCT DATE(CPH_INGESTED_TIMESTAMP) as DATE, COUNT(*) as cnt  FROM CPE_CLAIMS_LOG GROUP BY DATE ORDER BY DATE DESC;
 
 SELECT * FROM BACKFILL_LOG;
+
 SELECT COUNT(*) FROM CPE_CLAIMS_LOG;
+SELECT * FROM CPE_CLAIMS_LOG LIMIT 100;
 
 -- Execute Backfill Process
 CALL BACKFILL_CLAIMS_LOG('2025-12-15');
@@ -998,7 +1000,7 @@ SELECT * FROM CPE_CLAIMS_LOG;
 --TRUNCATE TABLE BACKFILL_LOG;
 
 -- Register BackFill Task
-CALL REGISTER_BACKFILL('TASK_BACKLOG_CLAIMS_LOG', '2025-12-17', '2026-01-17');
+CALL REGISTER_BACKFILL('TASK_BACKLOG_CLAIMS_LOG', '2026-01-08', '2026-01-08');
 SELECT * FROM BACKFILL_CONTROL;
 
 -- Create Task
@@ -1011,4 +1013,8 @@ ALTER TASK TASK_BACKLOG_CLAIMS_LOG RESUME;
 EXECUTE TASK TASK_BACKLOG_CLAIMS_LOG;
 
 -- [FOR TESTING ONLY] TRUNCATE TABLE CPE_CLAIMS_LOG;
-SELECT * FROM CPE_CLAIMS_LOG;
+SELECT REQ_A1_IIN
+   ,*
+FROM CPE_CLAIMS_LOG
+WHERE REQ_A1_IIN = '000000'
+LIMIT 10;
