@@ -7,7 +7,7 @@ FROM
 WHERE
     INGESTED_TIMESTAMP > CURRENT_DATE()
     AND data:eventType::VARCHAR IN (
-        'transactrx-medispan-mf2ndc'
+        'transactrx-cpesn-claim-events'
     )
     ORDER BY INGESTED_TIMESTAMP DESC
 LIMIT 100;
