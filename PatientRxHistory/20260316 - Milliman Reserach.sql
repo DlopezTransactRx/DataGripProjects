@@ -1,0 +1,286 @@
+----------------------------------------------------------------------------------------------------
+-- Find all Milliman Reported Requests By Request ID
+----------------------------------------------------------------------------------------------------
+USE DATABASE CPE_PROD;
+USE SCHEMA DATA;
+
+SET START_TIME = '2026-03-10 00:00:00';
+
+-- Find all Milliman Reported Requests
+WITH PrxHistoryRequests AS (
+    SELECT *
+    FROM DATA.PATIENT_RX_HISTORY_REQUESTS
+    WHERE EVENT_TIME > $START_TIME
+      AND REQUEST_ID IN (
+             'ccca0cf3-8ec1-4bc4-bea2-f34f1479cfa2'
+        )
+),
+
+-- Scope Request By Date Time
+     HTTPRequests AS (
+         SELECT *
+         FROM DATA.HTTPS_REQUEST_HISTORY
+         WHERE REQUEST_TIME > $START_TIME
+     ),
+
+-- Scope Snowflake Query Time By Date Time
+     QueryTime AS (
+         SELECT
+             query_id,
+             start_time,
+             total_elapsed_time  AS sf_total_ms,
+             compilation_time    AS sf_compile_ms,
+             execution_time      AS sf_exec_ms,
+             warehouse_name
+         FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
+         WHERE start_time > $START_TIME
+     )
+SELECT prx_reciept.REQUEST_ID as reqId, http_client_data.*, prx_reciept.*, qt.*
+FROM PrxHistoryRequests prx_reciept
+         LEFT JOIN  HTTPRequests http_client_data
+                    ON prx_reciept.HTTP_REQUEST_ID = http_client_data.HTTP_REQUEST_ID
+         LEFT JOIN QueryTime qt
+                   ON qt.QUERY_ID = prx_reciept.QUERY_ID
+;
+
+
+----------------------------------------------------------------------------------------------------
+-- [SELECT RECORDS THAT MATCH MILLIMAN REPORTED ISSUE]
+----------------------------------------------------------------------------------------------------
+USE DATABASE CPE_PROD;
+USE SCHEMA DATA;
+SELECT RECORD_ID, TRANSMISSION_ID, RX_NUMBER, DATE_OF_SERVICE
+-- SELECT
+--     RX_NUMBER, SERVICE_PROVIDER_NPI, NCPDP, PRESCRIBER_NPI, NDC, DAY_SUPPLY, QUANTITY_DISPENSED,
+--     DATE_OF_SERVICE, PATIENT_FIRST_NAME, PATIENT_LAST_NAME, PATIENT_DOB, PATIENT_ZIP, PATIENT_GENDER,
+--     RESPONSE_STATUS_CODE, PATIENT_ID, PATIENT_ID_QUALIFIER, CARDHOLDER_ID, NUMBER_OF_REFILLS, PATIENT_ADDRESS,
+--     PATIENT_CITY, PATIENT_STATE, GROUP_ID, SOURCE_QUERY
+FROM (
+--     SELECT RX_NUMBER, SERVICE_PROVIDER_NPI, NCPDP, PRESCRIBER_NPI, NDC, DAY_SUPPLY, QUANTITY_DISPENSED,
+--         DATE_OF_SERVICE, PATIENT_FIRST_NAME, PATIENT_LAST_NAME, PATIENT_DOB, PATIENT_ZIP,
+--         PATIENT_GENDER, RESPONSE_STATUS_CODE, PATIENT_ID, PATIENT_ID_QUALIFIER, CARDHOLDER_ID,
+--         NUMBER_OF_REFILLS, PATIENT_ADDRESS, PATIENT_CITY, PATIENT_STATE, GROUP_ID, 5 AS SOURCE_QUERY
+SELECT *
+    FROM CLAIMS_COMPLETE_RO
+    WHERE PATIENT_NAME_DOB_GENDER_ZIP3 IN ('f268330a95555b710d63dfd7304d24d9')
+        AND REVERSED = FALSE
+        AND DATE_TIME_TRANSACTION_PROCESSED >= DATEADD(YEAR, -7, CURRENT_DATE)
+    UNION
+--     SELECT RX_NUMBER, SERVICE_PROVIDER_NPI, NCPDP, PRESCRIBER_NPI, NDC, DAY_SUPPLY, QUANTITY_DISPENSED,
+--         DATE_OF_SERVICE, PATIENT_FIRST_NAME, PATIENT_LAST_NAME, PATIENT_DOB, PATIENT_ZIP,
+--         PATIENT_GENDER, RESPONSE_STATUS_CODE, PATIENT_ID, PATIENT_ID_QUALIFIER, CARDHOLDER_ID,
+--         NUMBER_OF_REFILLS, PATIENT_ADDRESS, PATIENT_CITY, PATIENT_STATE, GROUP_ID, 1 AS SOURCE_QUERY
+SELECT *
+    FROM CLAIMS_COMPLETE_RO
+    WHERE PATIENT_ID = '459513547'
+        AND PATIENT_ID_QUALIFIER = '01'
+        AND PATIENT_DOB = '19660104'
+        AND REVERSED = FALSE
+        AND DATE_TIME_TRANSACTION_PROCESSED >= DATEADD(YEAR, -7, CURRENT_DATE)
+) AS combined_results
+
+ -- Further Filter
+WHERE LENGTH(RX_NUMBER) = 3
+
+LIMIT 10000;
+
+
+
+----------------------------------------------------------------------------------------------------
+-- XXX
+----------------------------------------------------------------------------------------------------
+USE WAREHOUSE WH_RESEARCH;
+SELECT * FROM CPE_PROD.DATA.CPE_CLAIM_REQUESTS WHERE RECORD_ID = '1327157070427750444-168' LIMIT 1;
+
+----------------------------------------------------------------------------------------------------
+-- Find all Transmissions That Match Milliman Reported Issue By Transmission ID
+----------------------------------------------------------------------------------------------------
+-- Find Transmission That Match Milliman Reported Issue
+USE DATABASE CPE_PROD;
+USE SCHEMA STAGING;
+USE WAREHOUSE WH_RESEARCH;
+
+SELECT
+    data:transmissionId::STRING AS transmissionId,
+    INGESTED_TIMESTAMP,
+    data:dataCollectionOnly::STRING as dataCollectionOnly,
+    data:dataFeedId::STRING as dataFeedId,
+    data:serviceDate::STRING AS serviceDate,
+    data:origin::STRING AS origin,
+    data:bin::STRING as bin,
+    data:pmsType::STRING as pmsType,
+    data:serviceDate::STRING as serviceDate,
+    data:switchName::STRING as switchName,
+    data
+
+    FROM
+        STAGING.STAGE_CPE_TRANSMISSIONS as t
+    WHERE
+        transmissionId in
+        (
+         '1327157070427750444',
+         '1327157070511636536',
+         '1327157070511636506',
+         '1327157070461304891',
+         '1327157070461304866',
+         '1327157070499053618',
+         '1327157070499053588',
+         '1327157070515830788',
+         '1327157070465499141',
+         '1327157070499053613',
+         '1327157070515830793',
+         '1327157070507442186',
+         '1327157070415167527',
+         '1327157070415167502',
+         '1327157070419361827',
+         '1327157070419361847',
+         '1327157070423556150',
+         '1327157070419361802',
+         '1327157070406778924',
+         '1327157070494859293',
+         '1327157070423556125',
+         '1327157070431944708',
+         '1327157070503247891',
+         '1327157070415167547',
+         '1327157070410973233',
+         '1327157070503247876',
+         '1327157070423556130',
+         '1327157070431944718',
+         '1327157070415167497',
+         '1327157070419361792',
+         '1327157070494859303',
+         '1327157070415167517',
+         '1327157070415167522',
+         '1327157070507442191',
+         '1327157070465499146',
+         '1327157070419361812',
+         '1327157070507442176',
+         '1327157070465499136',
+         '1327157070461304861',
+         '1327157070465499156',
+         '1327157070494859313',
+         '1327157070410973193',
+         '1327157070419361842',
+         '1327157070410973203',
+         '1327157070461304871',
+         '1327157070503247926',
+         '1327157070507442221',
+         '1327157070507442216',
+         '1327157070423556140',
+         '1327157070499053603',
+         '1327157070499053583',
+         '1327157070511636486',
+         '1327157070431944733',
+         '1327157070406778934',
+         '1327157070410973223',
+         '1327157070507442201',
+         '1327157070427750429',
+         '1327157070499053578',
+         '1327157070419361797',
+         '1327157070423556105',
+         '1327157070503247896',
+         '1327157070465499171',
+         '1327157070499053573',
+         '1327150370236825619',
+         '1327157070431944743',
+         '1327157070494859288',
+         '1327157070419361822',
+         '1327157070423556135',
+         '1327157070427750439',
+         '1327157070423556115',
+         '1327157070423556120',
+         '1327157070431944738',
+         '1327157070419361807',
+         '1327157070427750414',
+         '1327157070507442196',
+         '1327157070423556145',
+         '1327157070410973248',
+         '1327157070427750434',
+         '1327157070515830798',
+         '1327157070503247881',
+         '1327157070461304841',
+         '1327157070431944728',
+         '1327157070499053568',
+         '1327157070419361837',
+         '1327157070427750459',
+         '1327157070427750424',
+         '1327157070499053593',
+         '1327157070427750419',
+         '1327157070507442211',
+         '1327157070511636511',
+         '1327157070507442206',
+         '1327157070410973198',
+         '1327157070427750449',
+         '1327157070465499181',
+         '1327157070503247901',
+         '1327157070431944723',
+         '1327157070511636526',
+         '1327157070499053598',
+         '1327157070511636481',
+         '1327157070410973238',
+         '1327157070465499151',
+         '1327157070419361817',
+         '1327157070494859308',
+         '1327157070415167537',
+         '1327157070423556100',
+         '1327157070503247906',
+         '1327157070410973243',
+         '1327157070431944748',
+         '1327157070515830803',
+         '1327157070461304856',
+         '1327157070461304881',
+         '1327157070511636496',
+         '1327157070406778939',
+         '1327157070423556110',
+         '1327157070461304876',
+         '1327157070503247921',
+         '1327157070406778919',
+         '1327157070461304846',
+         '1327157070511636501',
+         '1327157070410973213',
+         '1327157070511636516',
+         '1327157070494859318',
+         '1327157070415167532',
+         '1327157070427750404',
+         '1327157070499053628',
+         '1327157070415167507',
+         '1327157070431944713',
+         '1327157070507442181',
+         '1327157070503247886',
+         '1327157070465499176',
+         '1327157070415167512',
+         '1327157070406778929',
+         '1327157070410973208',
+         '1327157070427750409',
+         '1327157070431944753',
+         '1327157070499053623',
+         '1327157070503247916',
+         '1327157070511636491',
+         '1327157070507442226',
+         '1327157070461304886',
+         '1327157070465499161',
+         '1327157070511636531',
+         '1327157070427750454',
+         '1327157070515830808',
+         '1327157070415167542',
+         '1327157070499053608',
+         '1327157070410973228',
+         '1327157070423556155',
+         '1327157070494859298',
+         '1327157070511636521',
+         '1327157070465499166',
+         '1327157070461304851',
+         '1327157070410973188',
+         '1327157070415167492',
+         '1327150370165522461',
+         '1327157070410973218',
+         '1327157070419361832',
+         '1327157070503247911',
+         '1327157070507442231'
+        )
+        AND INGESTED_TIMESTAMP BETWEEN '2025-01-01' AND '2025-06-01'
+limit 100
+;
+
+
+DESCRIBE TABLE CPE_PROD.DATA.HTTPS_REQUEST_HISTORY;
