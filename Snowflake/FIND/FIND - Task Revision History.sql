@@ -124,6 +124,19 @@ SELECT
     version_group,
     MIN(scheduled_time) AS first_scheduled_time,
     MAX(scheduled_time) AS last_scheduled_time,
+    -- Human-readable duration: "Xd Xh Xm Xs"
+    TRIM(
+        CASE WHEN DATEDIFF('second', MIN(scheduled_time), MAX(scheduled_time)) >= 86400
+             THEN FLOOR(DATEDIFF('second', MIN(scheduled_time), MAX(scheduled_time)) / 86400) || 'd '
+             ELSE '' END ||
+        CASE WHEN DATEDIFF('second', MIN(scheduled_time), MAX(scheduled_time)) >= 3600
+             THEN FLOOR(MOD(DATEDIFF('second', MIN(scheduled_time), MAX(scheduled_time)), 86400) / 3600) || 'h '
+             ELSE '' END ||
+        CASE WHEN DATEDIFF('second', MIN(scheduled_time), MAX(scheduled_time)) >= 60
+             THEN FLOOR(MOD(DATEDIFF('second', MIN(scheduled_time), MAX(scheduled_time)), 3600) / 60) || 'm '
+             ELSE '' END ||
+        MOD(DATEDIFF('second', MIN(scheduled_time), MAX(scheduled_time)), 60) || 's'
+    ) AS active_duration,
     COUNT(*) AS run_count,
     ANY_VALUE(query_text) AS query_text,
     ARRAY_AGG(
