@@ -61,4 +61,3 @@ FROM TABLE(
   [NOTE] Here is an example how to UNSET a masking policy from a column.
     ALTER TABLE SANDBOX.DLOPEZ.TEST MODIFY COLUMN NAME UNSET MASKING POLICY;
  */
-
