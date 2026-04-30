@@ -49,6 +49,7 @@ COLUMNS
 PARAMETERS
 ----------
   DATABASE_NAME  The database containing the task
+  SCHEMA_NAME    The schema containing the task
   TASK_NAME      The name of the task to analyze
   START_TIME     Beginning of the time window (inclusive)
   END_TIME       End of the time window (exclusive midnight boundary —
@@ -79,6 +80,7 @@ HOW IT WORKS (TECHNICAL)
 
 -- Parameters
 SET DATABASE_NAME = 'CPE_PROD';
+SET SCHEMA_NAME = 'DATA';
 SET TASK_NAME = 'STREAM_TASK_TRANSACTION_LOG';
 SET START_TIME = '2026-04-29';
 SET END_TIME = '2026-04-30';
@@ -100,6 +102,7 @@ WITH task_runs AS (
     FROM SNOWFLAKE.ACCOUNT_USAGE.TASK_HISTORY
     WHERE scheduled_time BETWEEN $START_TIME AND $END_TIME
       AND name = $TASK_NAME
+      AND SCHEMA_NAME = $SCHEMA_NAME
       AND database_name = $DATABASE_NAME
       AND query_text IS NOT NULL
 )
