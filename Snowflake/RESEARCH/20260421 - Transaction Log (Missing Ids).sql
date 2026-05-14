@@ -908,3 +908,19 @@ SELECT
 FROM versioned
 GROUP BY database_name, schema_name, task_name, version_group
 ORDER BY database_name, schema_name, task_name, first_scheduled_time;
+
+
+
+// =====================================================
+// Get Ingested B1 transactions around a target date.
+// =====================================================
+USE WAREHOUSE WH_RESEARCH;
+SET TARGET_DATE = '2026-04-29 19:03:55.003000000 -04:00';
+
+CREATE OR REPLACE TABLE SANDBOX.DLOPEZ.B1_TRANSACTIONS_TO_INVESTIGATE AS
+SELECT * FROM CPE_PROD.STAGING.STAGE_CPE_TRANSMISSIONS
+WHERE INGESTED_TIMESTAMP BETWEEN DATEADD(hour, -2, $TARGET_DATE) AND  DATEADD(hour, 2, $TARGET_DATE)
+AND DATA:transactionCode = 'B1';
+
+
+SELECT COUNT(*) FROM SANDBOX.DLOPEZ.B1_TRANSACTIONS_TO_INVESTIGATE;

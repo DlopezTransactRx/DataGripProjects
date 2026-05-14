@@ -81,10 +81,9 @@ HOW IT WORKS (TECHNICAL)
 -- Parameters
 SET DATABASE_NAME = 'CPE_PROD';
 SET SCHEMA_NAME = 'DATA';
-SET TASK_NAME = 'STREAM_TASK_TRANSACTION_LOG';
-SET START_TIME = '2026-04-29';
-SET END_TIME = '2026-04-30';
-
+SET TASK_NAME = 'STREAM_TASK_MPI_MERGE_UPDATE_CLAIM_RECORD_PATIENT_IDS';
+SET END_TIME = '2026-05-02';
+SET START_TIME = '2026-03-19';
 
 -- Task Change History
 WITH task_runs AS (
@@ -124,6 +123,8 @@ SELECT
     version_group,
     MIN(scheduled_time) AS first_scheduled_time,
     MAX(scheduled_time) AS last_scheduled_time,
+    CONVERT_TIMEZONE('America/New_York', MIN(scheduled_time)) AS first_scheduled_time_et,
+    CONVERT_TIMEZONE('America/New_York', MAX(scheduled_time)) AS last_scheduled_time_et,
     -- Human-readable duration: "Xd Xh Xm Xs"
     TRIM(
         CASE WHEN DATEDIFF('second', MIN(scheduled_time), MAX(scheduled_time)) >= 86400
