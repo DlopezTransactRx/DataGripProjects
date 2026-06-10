@@ -77,13 +77,14 @@ HOW IT WORKS (TECHNICAL)
    to pack the full per-run details into a JSON array column.
 ==============================================================================
 */
+USE WAREHOUSE WH_RESEARCH;
 
 -- Parameters
 SET DATABASE_NAME = 'CPE_PROD';
 SET SCHEMA_NAME = 'DATA';
-SET TASK_NAME = 'STREAM_TASK_MPI_MERGE_UPDATE_CLAIM_RECORD_PATIENT_IDS';
-SET END_TIME = '2026-05-02';
-SET START_TIME = '2026-03-19';
+SET TASK_NAME = 'STREAM_TASK_TRANSACTION_LOG';
+SET START_TIME = '2026-02-01';
+SET END_TIME = '2026-06-05';
 
 -- Task Change History
 WITH task_runs AS (
