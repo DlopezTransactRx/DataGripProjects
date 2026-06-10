@@ -8,6 +8,18 @@ SET target_meta = (
     LIMIT 1
  );
 
+--TODO: Substitute a query that identifies a particular record with TASK_META.
+SELECT
+      TASK_META[0]:ROOT_TASK_NAME as ROOT_TASK_NAME,
+      TASK_META[0]:ROOT_TASK_UUID as ROOT_TASK_UUID,
+      TASK_META[0]:RUN_GROUP_ID   as RUN_GROUP_ID,
+      TASK_META[0]:RUN_TIME       as RUN_TIME,
+      TASK_META[0]:SCHEDULED_TIME as SCHEDULED_TIME,
+      TASK_META[0]:TASK_NAME      as TASK_NAME
+FROM CPE_DEV.RXMARKET.RXPB_AUCTIONS_POC_V2
+LIMIT 10;
+
+
 ----------------------------------------------------------------------------------------------------
 -- Select Meta History To Investigate - NOTE: Index 0 is always the latest.
 ----------------------------------------------------------------------------------------------------
