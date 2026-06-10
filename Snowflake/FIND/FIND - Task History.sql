@@ -1,19 +1,54 @@
 ----------------------------------------------------------------------------------------------------
+-- Target Task Record
+----------------------------------------------------------------------------------------------------
+SET target_meta = (
+    --TODO: Substitute a query that identifies a particular record with TASK_META.
+    SELECT TO_JSON(TASK_META)   --NOTE: Must TO_JSON
+    FROM CPE_DEV.RXMARKET.RXPB_AUCTIONS_POC_V2
+    LIMIT 1
+ );
+
+----------------------------------------------------------------------------------------------------
+-- Select Meta History To Investigate - NOTE: Index 0 is always the latest.
+----------------------------------------------------------------------------------------------------
+
+-- View All Task Meta History
+WITH META AS (
+    SELECT PARSE_JSON($target_meta) as TASK_META
+)
+, META_HISTORY AS (
+    SELECT f.index                as HISTORY_INDEX,
+          f.VALUE:ROOT_TASK_NAME as ROOT_TASK_NAME,
+          f.VALUE:ROOT_TASK_UUID as ROOT_TASK_UUID,
+          f.VALUE:RUN_GROUP_ID   as RUN_GROUP_ID,
+          f.VALUE:RUN_TIME       as RUN_TIME,
+          f.VALUE:SCHEDULED_TIME as SCHEDULED_TIME,
+          f.VALUE:TASK_NAME      as TASK_NAME
+    FROM META m,
+    LATERAL FLATTEN(input => m.TASK_META) f
+)
+SELECT * FROM META_HISTORY;
+
+
+-- Select Index To Investigate
+SET history_index = 0;
+
+
+----------------------------------------------------------------------------------------------------
 -- Target Task
 ----------------------------------------------------------------------------------------------------
 SET (run_group_id, root_task_uuid, task_name, scheduled_time, end_range_unit, end_range_value) = (
-
-    --TODO: Substitute a query that identifies a particular record.
+    WITH META AS (
+        SELECT PARSE_JSON($target_meta) as TASK_META
+    )
     SELECT
-        TASK_META[0]:RUN_GROUP_ID::string,
-        TASK_META[0]:ROOT_TASK_UUID::string,
-        SPLIT_PART(TASK_META[0]:TASK_NAME::string, '.', 3),
-        TASK_META[0]:SCHEDULED_TIME::string,
+        TASK_META[$history_index]:RUN_GROUP_ID::string,
+        TASK_META[$history_index]:ROOT_TASK_UUID::string,
+        SPLIT_PART(TASK_META[$history_index]:TASK_NAME::string, '.', 3),
+        TASK_META[$history_index]:SCHEDULED_TIME::string,
         'hour', -- End Range Unit
         1 -- End Range Value
-    FROM CPE_DEV.RXMARKET.RXPB_AUCTIONS_POC_V2
-    LIMIT 1
-
+    FROM META
 );
 
     SELECT $run_group_id, $root_task_uuid, $task_name, $scheduled_time, $end_range_unit, $end_range_value;
