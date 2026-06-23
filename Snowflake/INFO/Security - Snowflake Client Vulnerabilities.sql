@@ -48,6 +48,10 @@ $$
     + COALESCE(TRY_TO_NUMBER(REGEXP_SUBSTR(SPLIT_PART(v, '.', 4), '\\d+')), 0)
 $$;
 
+-- Days of Logins To review
+SET DAYS = 14;
+
+-- Query
 WITH vulnerable_clients AS (
     SELECT
         c:clientId::VARCHAR AS client_id,
@@ -98,7 +102,7 @@ WITH vulnerable_clients AS (
 
         version_key(reported_client_version) AS reported_version_key
     FROM snowflake.account_usage.login_history
-    WHERE event_timestamp >= DATEADD(day, -90, CURRENT_TIMESTAMP())
+    WHERE event_timestamp >= DATEADD(day, -$DAYS, CURRENT_TIMESTAMP())
       AND is_success = 'YES'
       AND reported_client_version IS NOT NULL
 )
@@ -158,7 +162,6 @@ WITH vulnerable_clients AS (
         nearing_eol,
         recommended_version
 )
-
 
 SELECT *
 FROM vulnerable_users
