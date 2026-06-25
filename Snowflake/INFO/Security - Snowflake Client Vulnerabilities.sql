@@ -1,3 +1,19 @@
+    SELECT
+    DISTINCT USER_NAME
+--           , REPORTED_CLIENT_TYPE
+--           , REPORTED_CLIENT_VERSION
+    FROM snowflake.account_usage.login_history
+    WHERE event_timestamp >= DATEADD(day, -720, CURRENT_TIMESTAMP())
+      AND is_success = 'YES'
+      AND REPORTED_CLIENT_TYPE = 'JDBC_DRIVER'
+    AND USER_NAME ILIKE '%redsailtechn%'
+    AND USER_NAME NOT IN (
+        'fernando.azouth@redsailtechnologies.com',
+        'frank.sciacchitano@redsailtechnologies.com'
+    )
+--     ORDER BY USER_NAME, REPORTED_CLIENT_VERSION DESC
+    LIMIT 1000;
+
 //================================================================
 // [SNOWFLAKE CLIENT VULNERABILITY INFO]
 // This Snowflake function identifies all Snowflake Clients with
@@ -49,7 +65,7 @@ $$
 $$;
 
 -- Days of Logins To review
-SET DAYS = 14;
+SET DAYS = 30;
 
 -- Query
 WITH vulnerable_clients AS (
