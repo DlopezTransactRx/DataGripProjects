@@ -1,13 +1,10 @@
-USE DATABASE CPE_DEV;
-USE SCHEMA STAGING;
-
 SELECT *
 FROM
     CPE_PROD.STAGING.STAGE_EVENTS
 WHERE
     INGESTED_TIMESTAMP > CURRENT_DATE()
     AND data:eventType::VARCHAR IN (
-        'transactrx-cpesn-claim-events'
+        'legacypwl-creditcards'
     )
     ORDER BY INGESTED_TIMESTAMP DESC
 LIMIT 100;

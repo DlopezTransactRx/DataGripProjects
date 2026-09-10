@@ -65,7 +65,7 @@ $$
 $$;
 
 -- Days of Logins To review
-SET DAYS = 30;
+SET DAYS = 7;
 
 -- Query
 WITH vulnerable_clients AS (
@@ -160,7 +160,6 @@ WITH vulnerable_clients AS (
         reported_client_version,
         nearing_eol,
         recommended_version,
-
         ARRAY_AGG(DISTINCT OBJECT_CONSTRUCT(
             'cve', cve,
             'cve_url', cve_url,
